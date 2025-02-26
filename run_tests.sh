@@ -39,16 +39,45 @@ TEST_PIDS=()
 
 download_assets
 
-if [[ "${1:-x}" = "--skip-pre-commit" ]] ; then
-  SKIP_PRECOMMIT=true
-  shift
-fi
-
 MARKER_FILTER="not (gs_login or tpu or high_cpu or fp64)"
-if [[ "${1:-x}" = "--run-tpu-tests" ]] ; then
-  MARKER_FILTER="not (gs_login or high_cpu or fp64)"
-  shift
-fi
+
+while [[ $# -gt 0 ]]; do
+  arg="$1"
+  case "$arg" in
+    --skip-pre-commit)
+      echo "Skipping precommit"
+      SKIP_PRECOMMIT=true
+      shift
+      ;;
+    --run-tpu-tests)
+      echo "Running TPU tests"
+      MARKER_FILTER="not (gs_login or high_cpu or fp64)"
+      shift
+      ;;
+    -*)
+      echo "Invalid option: $key" >&2
+      exit 1
+      ;;
+    *)
+      args+=("$1")
+      shift
+      ;;
+  esac
+done
+
+echo "Remaining args: $1"
+echo "Remaining args: $args"
+
+#if [[ "${1:-x}" = "--skip-pre-commit" ]] ; then
+#  SKIP_PRECOMMIT=true
+#  shift
+#fi
+#
+#MARKER_FILTER="not (gs_login or tpu or high_cpu or fp64)"
+#if [[ "${1:-x}" = "--run-tpu-tests" ]] ; then
+#  MARKER_FILTER="not (gs_login or high_cpu or fp64)"
+#  shift
+#fi
 
 # Skip pre-commit on parallel CI because it is run as a separate job.
 if [[ "${SKIP_PRECOMMIT:-false}" = "false" ]] ; then
@@ -56,7 +85,7 @@ if [[ "${SKIP_PRECOMMIT:-false}" = "false" ]] ; then
   TEST_PIDS[$!]=1
 fi
 
-UNQUOTED_PYTEST_FILES=$(echo $1 |  tr -d "'")
+UNQUOTED_PYTEST_FILES=$(echo $args |  tr -d "'")
 pytest --durations=100 -v -n auto \
   -m "${MARKER_FILTER}" ${UNQUOTED_PYTEST_FILES} \
   --dist worksteal &
