@@ -44,6 +44,12 @@ if [[ "${1:-x}" = "--skip-pre-commit" ]] ; then
   shift
 fi
 
+MARKER_FILTER="not (gs_login or tpu or high_cpu or fp64)"
+if [[ "${1:-x}" = "--run-tpu-tests" ]] ; then
+  MARKER_FILTER="not (gs_login or high_cpu or fp64)"
+  shift
+fi
+
 # Skip pre-commit on parallel CI because it is run as a separate job.
 if [[ "${SKIP_PRECOMMIT:-false}" = "false" ]] ; then
   precommit_checks &
@@ -52,7 +58,7 @@ fi
 
 UNQUOTED_PYTEST_FILES=$(echo $1 |  tr -d "'")
 pytest --durations=100 -v -n auto \
-  -m "not (gs_login or tpu or high_cpu or fp64)" ${UNQUOTED_PYTEST_FILES} \
+  -m "${MARKER_FILTER}" ${UNQUOTED_PYTEST_FILES} \
   --dist worksteal &
 TEST_PIDS[$!]=1
 
