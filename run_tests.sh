@@ -55,11 +55,11 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     -*)
-      echo "Invalid option: $key" >&2
+      echo "Invalid option: $arg" >&2
       exit 1
       ;;
     *)
-      args+=("$1")
+      args+=("$arg")
       shift
       ;;
   esac
