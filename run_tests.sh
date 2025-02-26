@@ -39,7 +39,7 @@ TEST_PIDS=()
 
 download_assets
 
-MARKER_FILTER="not (gs_login or tpu or high_cpu or fp64)"
+MARKER_FILTER="not (gs_login or tpu or high_cpu or fp64 or for_8_devices)"
 
 while [[ $# -gt 0 ]]; do
   arg="$1"
@@ -92,6 +92,10 @@ pytest --durations=100 -v -n auto \
 TEST_PIDS[$!]=1
 
 JAX_ENABLE_X64=1 pytest --durations=100 -v -n auto -v -m "fp64" --dist worksteal &
+TEST_PIDS[$!]=1
+
+XLA_FLAGS="--xla_force_host_platform_device_count=8" pytest --durations=100 -v \
+  -n auto -v -m "for_8_devices" --dist worksteal &
 TEST_PIDS[$!]=1
 
 # Use Bash 5.1's new wait -p feature to quit immediately if any subprocess fails to make error
